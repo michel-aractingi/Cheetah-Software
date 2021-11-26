@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
   // open simulator UI
   SimControlPanel panel;
   panel.show();
-
+  panel.setup_mc_simulation();
   // run the Qt program
   a.exec();
 

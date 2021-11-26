@@ -24,6 +24,7 @@
 #include "traversability_map_t.hpp"
 #include "obstacle_visual_t.hpp"
 #include "velocity_visual_t.hpp"
+#include "panel_command_t.hpp"
 
 namespace Ui {
 class SimControlPanel;
@@ -45,6 +46,7 @@ class SimControlPanel : public QMainWindow {
 
 
 public slots:
+  void setup_mc_simulation();
   void update_ui();
   void errorCallback(std::string errorMessage);
 
@@ -152,18 +154,24 @@ public slots:
       const velocity_visual_t* msg);
   void ctrlVisionLCMThread(){ while(true){ _ctrlVisionLCM.handle();  } }
 
+  void handlePanelCMDLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, 
+      const panel_command_t* msg);
+  void panelCommandLCMThread(){ while(true){ _panelCommandLCM.handle();  } }
+
   void handleSpiDebug(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const leg_control_data_lcmt* msg);
 
   lcm::LCM _heightmapLCM;
   lcm::LCM _pointsLCM;
   lcm::LCM _indexmapLCM;
   lcm::LCM _ctrlVisionLCM;
+  lcm::LCM _panelCommandLCM;
   lcm::LCM _miniCheetahDebugLCM;
 
   std::thread _pointsLCMThread;
   std::thread _heightmapLCMThread;
   std::thread _indexmapLCMThread;
   std::thread _ctrlVisionLCMThread;
+  std::thread _panelCommandLCMThread;
   std::thread _miniCheetahDebugLCMThread;
 
   MiniCheetahDebug _mcDebugWindow;

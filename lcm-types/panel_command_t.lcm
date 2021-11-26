@@ -1,0 +1,4 @@
+struct panel_command_t
+{
+	string command;
+}

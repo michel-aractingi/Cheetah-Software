@@ -79,9 +79,9 @@ SimControlPanel::SimControlPanel(QWidget* parent)
       _pointsLCM(getLcmUrl(255)),
       _indexmapLCM(getLcmUrl(255)),
       _ctrlVisionLCM(getLcmUrl(255)),
+      _panelCommandLCM(getLcmUrl(255)),
       _miniCheetahDebugLCM(getLcmUrl(255))
 {
-
   ui->setupUi(this); // QT setup
   updateUiEnable();  // enable/disable buttons as needed.
   updateTerrainLabel(); // display name of loaded terrain file
@@ -131,6 +131,9 @@ SimControlPanel::SimControlPanel(QWidget* parent)
   _ctrlVisionLCM.subscribe("obstacle_visual", &SimControlPanel::handleObstacleLCM, this);
   _ctrlVisionLCMThread = std::thread(&SimControlPanel::ctrlVisionLCMThread, this);
 
+  _panelCommandLCM.subscribe("panel_command", &SimControlPanel::handlePanelCMDLCM, this);
+  _panelCommandLCMThread = std::thread(&SimControlPanel::panelCommandLCMThread, this);
+
   // subscribe mc debug
   _miniCheetahDebugLCM.subscribe("leg_control_data", &SimControlPanel::handleSpiDebug, this);
   _miniCheetahDebugLCMThread = std::thread([&](){
@@ -138,6 +141,12 @@ SimControlPanel::SimControlPanel(QWidget* parent)
      _miniCheetahDebugLCM.handle();
   });
 
+}
+
+void SimControlPanel::setup_mc_simulation(){
+  ui->miniCheetahButton->setChecked(true);
+  ui->simulatorButton->setChecked(true);
+  ui->startButton->click();
 }
 
 void SimControlPanel::handleVelocityCMDLCM(const lcm::ReceiveBuffer* rbuf, 
@@ -230,6 +239,24 @@ void SimControlPanel::handleHeightmapLCM(const lcm::ReceiveBuffer *rbuf,
 
     _graphicsWindow->_heightmap_data_update = true;
   }
+}
+
+void SimControlPanel::handlePanelCMDLCM(const lcm::ReceiveBuffer *rbuf,
+                                        const std::string &chan,
+                                        const panel_command_t *msg) {
+  (void)rbuf;
+  (void)chan;
+
+  std::cout << "Got Panel Command: " << msg->command << std::endl;
+  if (msg->command == "goHome") {
+    ui->goHomeButton->click();
+  } else if (msg->command == "setUpMCSimulation") {
+    setup_mc_simulation();
+
+  } else {
+      std::cout << "... not implemented ;(" << std::endl;
+  }
+
 }
 
 void SimControlPanel::handleSpiDebug(const lcm::ReceiveBuffer *rbuf, const std::string &chan,
