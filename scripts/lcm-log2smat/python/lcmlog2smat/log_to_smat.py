@@ -12,25 +12,13 @@ import os
 import sys
 import binascii
 import types
-import numpy
 import re
 import getopt
 
-# Python 2.7 and 3 
 if sys.version_info >= (3, 0):
-    import pickle
     xrange  = range
     long    = int
     unicode = int
-else:
-    import cPickle as pickle
-
-# check which version for mio location
-if sys.version_info < (2, 6):
-    import scipy.io.mio
-else:
-    import scipy.io.matlab.mio
-
 
 
 from lcm import EventLog
@@ -271,11 +259,27 @@ def parse_and_save (args, opts={}):
 
         if savePickle:
 
+            # Python 2.7 and 3 
+            if sys.version_info >= (3, 0):
+                import pickle
+                xrange  = range
+                long    = int
+                unicode = int
+            else:
+                import cPickle as pickle
+
             # Pickle the list/dictonary using the highest protocol available.
             output = open(outFname, 'wb')
             pickle.dump(data, output, -1)
             output.close()
         else:
+            import numpy
+            # check which version for mio location
+            if sys.version_info < (2, 6):
+                import scipy.io.mio
+            else:
+                import scipy.io.matlab.mio
+
             # Matlab format using scipy
             if sys.version_info < (2, 6):
                 scipy.io.mio.savemat(outFname, data)
