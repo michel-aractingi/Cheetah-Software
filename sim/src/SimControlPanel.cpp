@@ -252,18 +252,13 @@ void SimControlPanel::handlePanelCMDLCM(const lcm::ReceiveBuffer *rbuf,
     ui->goHomeButton->click();
   } else if (msg->command == "setUpMCSimulation") {
     setup_mc_simulation();
-  } else if (msg->command == "stand up") {
-      if (_state != SimulationWindowState::RUNNING){
-        std::cout << "Cannot stand up since simulation is not running." << std::endl;      
-      } else {
-          ui->robotTable->setItem(1, 1, new QTableWidgetItem("6"));
-      }
-  } else if (msg->command == "visual trot") {
-      if (_state != SimulationWindowState::RUNNING){
-        std::cout << "Cannot visual trot since simulation is not running." << std::endl;      
-      } else {
-          ui->robotTable->setItem(1, 1, new QTableWidgetItem("8"));
-      }
+  } else if ((msg->command.substr(0,6) == "robot ") || (msg->command.substr(0,5) == "user ")) {
+      auto cmd_stream = std::stringstream(msg->command);
+      std::string panel, val;
+      int row;
+      cmd_stream >> panel >> row >> val;
+      auto table = (panel == "robot") ? ui->robotTable : ui->userControlTable;
+      table->setItem(row-1, 1, new QTableWidgetItem(&val[0]));
   } else {
       std::cout << "... not implemented ;(" << std::endl;
   }
