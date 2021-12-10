@@ -8,8 +8,11 @@
 #define PROJECT_GAMECONTROLLER_H
 
 #include "SimUtilities/GamepadCommand.h"
-
 #include <QtCore/QObject>
+
+#include <lcm-cpp.hpp>
+#include <thread>
+#include "gamepad_lcmt.hpp"
 
 class QGamepad;  // for an unknown reason, #including <QtGamepad/QGamepad> here
                  // makes compilation *very* slow
@@ -24,6 +27,15 @@ class GameController : public QObject {
 
  private:
   QGamepad *_qGamepad = nullptr;
+
+  // if no joystick, set up the lcmt_channel for it
+  gamepad_lcmt _gamepad_lcmt;
+  lcm::LCM _lcm;
+  void handleLCMJoystick(const lcm::ReceiveBuffer* rbuf,
+                         const std::string& chan,
+                         const gamepad_lcmt* msg);
+  void lcmJoystickThread(){ while(true){ _lcm.handle();  } }
+  std::thread _lcmThread;
 };
 
 #endif  // PROJECT_GAMECONTROLLER_H

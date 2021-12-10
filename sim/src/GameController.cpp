@@ -16,10 +16,10 @@
 /*!
  * By default, the game controller selects the "first" joystick, printing a
  * warning if there are multiple joysticks On Linux, this is /dev/input/js0 If
- * no joystick is found, it will print an error message, and will return zero.
+ * no joystick is found, it will subscribe to lcm_joystick channel.
  * It is possible to change/add a joystick later with findNewController
  */
-GameController::GameController(QObject *parent) : QObject(parent) {
+GameController::GameController(QObject *parent) : QObject(parent), _lcm(getLcmUrl(255)) {
   findNewController();
 }
 
@@ -37,8 +37,13 @@ void GameController::findNewController() {
   printf("[Gamepad] Done searching for gamepads.\n");
   if (gamepadList.empty()) {
     printf(
-        "[ERROR: GameController] No controller was connected! All joystick "
-        "commands will be zero!\n");
+        "[ERROR: GameController] No controller was connected! Subscribing to lcm_joystick.\n");
+
+    GamepadCommand z;     
+    z.get(&_gamepad_lcmt); // zero the lcmt message
+
+    _lcm.subscribe("lcm_joystick", &GameController::handleLCMJoystick, this);
+    _lcmThread = std::thread(&GameController::lcmJoystickThread, this); 
   } else {
     if (gamepadList.size() > 1) {
       printf(
@@ -51,6 +56,14 @@ void GameController::findNewController() {
 
     _qGamepad = new QGamepad(*gamepadList.begin());
   }
+}
+
+void GameController::handleLCMJoystick(
+    const lcm::ReceiveBuffer *rbuf, const std::string &chan,
+    const gamepad_lcmt *msg) {
+    (void)rbuf;
+    (void)chan;
+    _gamepad_lcmt = *msg;
 }
 
 /*!
@@ -79,7 +92,7 @@ void GameController::updateGamepadCommand(GamepadCommand &gamepadCommand) {
     gamepadCommand.rightStickAnalog =
         Vec2<float>(_qGamepad->axisRightX(), -_qGamepad->axisRightY());
   } else {
-    gamepadCommand.zero();  // no joystick, return all zeros
+    gamepadCommand.set(&_gamepad_lcmt);
   }
 
   // printf("%s\n", gamepadCommand.toString().c_str());
