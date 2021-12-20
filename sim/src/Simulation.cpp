@@ -390,8 +390,16 @@ void Simulation::lowLevelControl() {
 
     // run spine board control:
     for (auto& spineBoard : _spineBoards) {
-      spineBoard.run();
+      spineBoard.run(); // turns pd input to torques
     }
+
+    // publish torques (before atcuator model) - could be conditional
+    for (int leg = 0; leg < 4; leg++) {
+      _trqLCM.tau_abad[leg] = _spineBoards[leg].torque_out[0];
+      _trqLCM.tau_hip[leg]  = _spineBoards[leg].torque_out[1];
+      _trqLCM.tau_knee[leg] = _spineBoards[leg].torque_out[2];
+    }
+    _lcm->publish(TRQ_LCM_NAME, &_trqLCM);
 
   } else if (_robot == RobotType::CHEETAH_3) {
     // update data

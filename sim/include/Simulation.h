@@ -27,8 +27,10 @@
 
 #include <lcm/lcm-cpp.hpp>
 #include "simulator_lcmt.hpp"
+#include "spi_torque_t.hpp"
 
 #define SIM_LCM_NAME "simulator_state"
+#define TRQ_LCM_NAME "torque_out"
 
 /*!
  * Top-level control of a simulation.
@@ -155,6 +157,7 @@ class Simulation {
   double _timeOfNextHighLevelControl = 0.;
   s64 _highLevelIterations = 0;
   simulator_lcmt _simLCM;
+  spi_torque_t _trqLCM;
 };
 
 #endif  // PROJECT_SIMULATION_H
