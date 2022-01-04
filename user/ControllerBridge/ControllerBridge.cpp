@@ -9,6 +9,7 @@ void ControllerBridge::runController() {
       _legController->commands[leg].qDes[joint] = command.q_des[idx];
       _legController->commands[leg].kpJoint(joint,joint) = command.kp_joint[idx];
       _legController->commands[leg].kdJoint(joint,joint) = command.kd_joint[idx];
+      _legController->commands[leg].tauFeedForward[joint] = command.tau_ff[idx];
       idx++;
     }
   }
